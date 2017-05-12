@@ -1,0 +1,32 @@
+user_name = 
+password = 
+
+cluster_name = 
+cluster_dns_domain = 
+
+region = "osl/bgo"
+coreos_image = 
+tenant_name = (project)
+availability_zone = "osl-default-1"
+apiserver_count = 1
+etcd_count = 3
+worker_count = 2
+lb_count = 2
+
+
+allow_ssh_from_v4 = [
+    "192.168.1.0/24",
+    "129.240.0.0/16"
+]
+
+allow_lb_from_v4 = [
+    "10.0.0.10/32",
+    "129.240.6.39/32",
+    "10.0.0.20/32"
+]
+
+allow_api_access_from_v4 = [
+    "192.168.1.0/24",
+    "192.168.2.0/24",
+    "129.240.0.0/16"
+]
