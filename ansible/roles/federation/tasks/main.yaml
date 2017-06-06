@@ -1,0 +1,30 @@
+- name: Clear Federation configuration directory
+  file:
+    dest: ./federation_config
+    state: absent
+- name: Prepare Kubernetes configuration directory
+  file:
+    dest: ./federation_config
+    state: directory
+- name: Copy configuration files
+  copy:
+    src: "{{ item }}"
+    dest: "./federation_config/{{ item | basename }}"
+  with_fileglob:
+  - '*.yaml'
+- name: Initialize templated configuration files
+  template:
+    src: "{{ item }}"
+    dest: "./federation_config/{{ item | basename | regex_replace('\\.j2$','') }}"
+  with_fileglob:
+  - '../templates/*.yaml.j2'
+- name: Create Federation Namespace
+  command: kubectl --kubeconfig kubeconfig apply -f ./federation_config/namespace.yaml
+- name: Create Federation ETCD Cluster
+  command: kubectl --kubeconfig kubeconfig apply -f ./federation_config/etcd.yaml
+- name: Create CoreDNS
+  command: kubectl --kubeconfig kubeconfig apply -f ./federation_config/coredns.yaml
+- name: Create Federation API Server
+  command: kubectl --kubeconfig kubeconfig apply -f ./federation_config/fed-api-server.yaml
+- name: Create Federation Controller Manager
+  command: kubectl --kubeconfig kubeconfig apply -f ./federation_config/fed-controller-manager.yaml

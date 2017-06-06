@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: federation-controller-manager
+  namespace: federation-system
+
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: federation-controller-manager
+  namespace: federation-system
+  labels:
+    app: federated-cluster
+spec:
+  template:
+    metadata:
+      name: federation-controller-manager
+      labels:
+        app: federated-cluster
+        module: federation-controller-manager
+    spec:
+      serviceAccountName: federation-controller-manager
+      volumes:
+      - name: coredns-conf
+        configMap:
+          name: federation-cm-coredns
+          defaultMode: 420
+          items:
+          - key: coredns.conf
+            path: coredns.conf
+      # - name: ssl
+      #   hostPath:
+      #     path: /etc/ssl
+      containers:
+      - name: controller-manager
+        image: gcr.io/google_containers/hyperkube-amd64:v{{k8s_ver}}
+        env:
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+        args:
+          - /hyperkube
+          - federation-controller-manager
+          - --master=https://federation-apiserver:443
+          - --dns-provider=coredns
+          - --dns-provider-config=/etc/coredns/coredns.conf
+          - --federation-name=federation
+          - --zone-name=researchlab.uninett.no.
+          - --v=4
+        volumeMounts:
+        - name: coredns-conf
+          readOnly: true
+          mountPath: /etc/coredns
+        # - name: ssl
+        #   readOnly: true
+        #   mountPath: /etc/ssl
+        ports:
+          - containerPort: 443
+            name: https
+          - containerPort: 8080
+            name: local
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: federation-cm-coredns
+  namespace: federation-system
+data:
+  coredns.conf: |-
+    [Global]
+    etcd-endpoints = http://etcd-fed:2379
+    zones = researchlab.uninett.no.

@@ -29,3 +29,4 @@ calico_ipip: "always"
 calico_node_ver: 2.6.1
 calico_cni_ver: 1.11.0
 calico_k8s_policy_ver: 1.0.0
+fed_public_api_ip: 127.0.0.1
