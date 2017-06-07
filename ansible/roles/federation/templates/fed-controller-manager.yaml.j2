@@ -5,6 +5,37 @@ metadata:
   namespace: federation-system
 
 ---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: federation-controller-manager
+  namespace: federation-system
+rules:
+  - apiGroups:
+    - ""
+    resources:
+    - secrets
+    - configmaps
+    verbs:
+    - get
+    - list
+    - watch
+
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: federation-controller-manager
+  namespace: federation-system
+subjects:
+  - kind: ServiceAccount
+    name: federation-controller-manager
+roleRef:
+  kind: Role
+  name: federation-controller-manager
+  apiGroup: rbac.authorization.k8s.io
+
+---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -29,6 +60,13 @@ spec:
           items:
           - key: coredns.conf
             path: coredns.conf
+      - name: kubeconfig
+        configMap:
+          name: federation-apiserver-kubeconfig
+          defaultMode: 420
+          items:
+          - key: kubeconfig
+            path: kubeconfig
       # - name: ssl
       #   hostPath:
       #     path: /etc/ssl
@@ -46,13 +84,17 @@ spec:
           - --master=https://federation-apiserver:443
           - --dns-provider=coredns
           - --dns-provider-config=/etc/coredns/coredns.conf
-          - --federation-name=federation
-          - --zone-name=researchlab.uninett.no.
+          - --federation-name={{fed_name}}
+          - --zone-name={{fed_zone_name}}
           - --v=4
+          - --kubeconfig=/etc/kubernetes/kubeconfig
         volumeMounts:
         - name: coredns-conf
           readOnly: true
           mountPath: /etc/coredns
+        - name: kubeconfig
+          readOnly: true
+          mountPath: /etc/kubernetes
         # - name: ssl
         #   readOnly: true
         #   mountPath: /etc/ssl
@@ -72,4 +114,4 @@ data:
   coredns.conf: |-
     [Global]
     etcd-endpoints = http://etcd-fed:2379
-    zones = researchlab.uninett.no.
+    zones = {{fed_zone_name}}

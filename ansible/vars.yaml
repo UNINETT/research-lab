@@ -29,4 +29,7 @@ calico_ipip: "always"
 calico_node_ver: 2.6.1
 calico_cni_ver: 1.11.0
 calico_k8s_policy_ver: 1.0.0
-fed_public_api_ip: 127.0.0.1
+fed_public_api_ip: 158.36.100.28
+fed_api_token: a08df6b23deef35a48999aa8d209eba4
+fed_zone_name: researchlab.no.
+fed_name: researchlab
