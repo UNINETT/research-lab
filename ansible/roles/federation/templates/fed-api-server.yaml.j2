@@ -31,7 +31,7 @@ metadata:
   namespace: federation-system
 type: Opaque
 data:
-  known-tokens.csv: {{ lookup('file', 'federation_config/known-tokens.csv')| b64encode }}
+  known-tokens.csv: {{ lookup('file', './federation_config/known-tokens.yaml')| b64encode }}
 
 ---
 apiVersion: v1

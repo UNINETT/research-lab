@@ -12,6 +12,10 @@
     dest: "./federation_config/{{ item | basename }}"
   with_fileglob:
   - '*.yaml'
+- name: Initialize templated Token file
+  template:
+    src: known-tokens.yaml.j2
+    dest: "./federation_config/known-tokens.yaml"
 - name: Initialize templated configuration files
   template:
     src: "{{ item }}"
