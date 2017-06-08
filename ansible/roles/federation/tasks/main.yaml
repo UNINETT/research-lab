@@ -28,3 +28,12 @@
   command: kubectl --kubeconfig kubeconfig apply -f ./federation_config/fed-api-server.yaml
 - name: Create Federation Controller Manager
   command: kubectl --kubeconfig kubeconfig apply -f ./federation_config/fed-controller-manager.yaml
+- name: Create Safespring Kubeconfig secret
+  command: kubectl --kubeconfig kubeconfig -n federation-system create secret generic safespring --from-file=kubeconfig
+- name: Generating Federation kubeconfig
+  template:
+    src: fed-kubeconfig.j2
+    dest: ./fed-kubeconfig
+    mode: 0600
+- name: Create Safespring Cluster in Federation Cluster
+  command: kubectl --kubeconfig fed-kubeconfig apply -f ./federation_config/clusters.yaml
