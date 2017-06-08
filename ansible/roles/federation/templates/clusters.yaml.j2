@@ -5,6 +5,6 @@ metadata:
 spec:
   serverAddressByClientCIDRs:
     - clientCIDR: "0.0.0.0/0"
-      serverAddress: "https://193.156.27.71:8443"
+      serverAddress: "https://{{ hostvars[groups['masters'][0]]['public_ip'] }}8443"
   secretRef:
     name: safespring
