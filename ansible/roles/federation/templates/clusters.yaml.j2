@@ -5,6 +5,18 @@ metadata:
 spec:
   serverAddressByClientCIDRs:
     - clientCIDR: "0.0.0.0/0"
-      serverAddress: "https://{{ hostvars[groups['masters'][0]]['public_ip'] }}:8443"
+      serverAddress: "https://{{ ss_api_server }}:8443"
   secretRef:
     name: safespring
+
+---
+apiVersion: federation/v1beta1
+kind: Cluster
+metadata:
+  name: uh-iaas
+spec:
+  serverAddressByClientCIDRs:
+    - clientCIDR: "0.0.0.0/0"
+      serverAddress: "https://{{ uh_iaas_api_server }}:8443"
+  secretRef:
+    name: uh-iaas
