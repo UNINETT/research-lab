@@ -14,6 +14,15 @@ data:
 
 ---
 apiVersion: v1
+kind: Secret
+metadata:
+  name: test-secret
+  namespace: fed-test
+data:
+  key: ZmVkLXRlc3Rpbmc=
+
+---
+apiVersion: v1
 kind: Service
 metadata:
   name: example-2048
