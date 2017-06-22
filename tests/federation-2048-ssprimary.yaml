@@ -17,12 +17,15 @@ metadata:
             "rebalance": true,
             "clusters": {
                 "safespring": {
+                    "weight": 10
+                },
+                "uh-iaas": {
                     "weight": 1
                 }
             }
         }
 spec:
-  replicas: 10
+  replicas: 5
   selector:
     matchLabels:
       app: example-2048-dp
