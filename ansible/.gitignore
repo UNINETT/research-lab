@@ -1,9 +1,11 @@
 /.ve/
 /*.retry
 /inventory
+/kubeconfig
 /kubeconfig-*
 /cluster_config-*
 /scripts
+/cluster_config
 /federation_config
 /fed-kubeconfig
 /cluster-kubeconfigs
