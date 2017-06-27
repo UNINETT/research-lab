@@ -23,35 +23,40 @@
   with_fileglob:
   - '../templates/*.yaml.j2'
 - name: Create Federation Namespace
-  command: kubectl --kubeconfig kubeconfig apply -f ./federation_config/namespace.yaml
+  command: kubectl --kubeconfig kubeconfig-cluster-{{cluster_name}}-{{ fed_host_cluster }} apply -f ./federation_config/namespace.yaml
 - name: Create Federation ETCD Cluster
-  command: kubectl --kubeconfig kubeconfig apply -f ./federation_config/etcd.yaml
+  command: kubectl --kubeconfig kubeconfig-cluster-{{cluster_name}}-{{ fed_host_cluster }} apply -f ./federation_config/etcd.yaml
 - name: Create CoreDNS
-  command: kubectl --kubeconfig kubeconfig apply -f ./federation_config/coredns.yaml
+  command: kubectl --kubeconfig kubeconfig-cluster-{{cluster_name}}-{{ fed_host_cluster }} apply -f ./federation_config/coredns.yaml
 - name: Create Federation API Server
-  command: kubectl --kubeconfig kubeconfig apply -f ./federation_config/fed-api-server.yaml
+  command: kubectl --kubeconfig kubeconfig-cluster-{{cluster_name}}-{{ fed_host_cluster }} apply -f ./federation_config/fed-api-server.yaml
 - name: Create Federation Controller Manager
-  command: kubectl --kubeconfig kubeconfig apply -f ./federation_config/fed-controller-manager.yaml
-- name: Create Cluster kubeconfigs folder structure
-  command : mkdir -p cluster-kubeconfigs/safespring cluster-kubeconfigs/uh-iaas cluster-kubeconfigs/aws
+  command: kubectl --kubeconfig kubeconfig-cluster-{{cluster_name}}-{{ fed_host_cluster }} apply -f ./federation_config/fed-controller-manager.yaml
 - name: Check safespring kubeconfig secret defined
-  command: kubectl --kubeconfig kubeconfig -n federation-system get secret safespring
+  command: kubectl --kubeconfig kubeconfig-cluster-{{cluster_name}}-{{ fed_host_cluster }} -n federation-system get secret safespring
   register: safespring_defined
   ignore_errors: True
 - name: Create Safespring Kubeconfig secret
-  command: kubectl --kubeconfig kubeconfig -n federation-system create secret generic safespring --from-file=./cluster-kubeconfigs/safespring/kubeconfig
+  command: kubectl --kubeconfig kubeconfig-cluster-{{cluster_name}}-{{ fed_host_cluster }} -n federation-system create secret generic safespring --from-file=./kubeconfig-{{cluster_name}}-safespring
   when: safespring_defined|failed
 - name: Check UH-IaaS kubeconfig secret defined
-  command: kubectl --kubeconfig kubeconfig -n federation-system get secret uh-iaas
+  command: kubectl --kubeconfig kubeconfig-cluster-{{cluster_name}}-{{ fed_host_cluster }} -n federation-system get secret uhiaas
   register: uh_iaas_defined
   ignore_errors: True
 - name: Create UH-IaaS Kubeconfig secret
-  command: kubectl --kubeconfig kubeconfig -n federation-system create secret generic uh-iaas --from-file=./cluster-kubeconfigs/uh-iaas/kubeconfig
-  when: uh_iaas_defined|failed
+  command: kubectl --kubeconfig kubeconfig-cluster-{{cluster_name}}-{{ fed_host_cluster }} -n federation-system create secret generic uhiaas --from-file=./kubeconfig-{{cluster_name}}-uhiaas
+  when: uhiaas_defined|failed
+- name: Check AWS kubeconfig secret defined
+  command: kubectl --kubeconfig kubeconfig-cluster-{{cluster_name}}-{{ fed_host_cluster }} -n federation-system get secret aws
+  register: aws_defined
+  ignore_errors: True
+- name: Create AWS Kubeconfig secret
+  command: kubectl --kubeconfig kubeconfig-cluster-{{cluster_name}}-{{ fed_host_cluster }} -n federation-system create secret generic aws --from-file=./kubeconfig-{{cluster_name}}-aws
+  when: aws_defined|failed
 - name: Generating Federation kubeconfig
   template:
     src: fed-kubeconfig.j2
     dest: ./fed-kubeconfig
     mode: 0600
-- name: Create Safespring Cluster in Federation Cluster
+- name: Create underlying clusters in Federation Cluster
   command: kubectl --kubeconfig fed-kubeconfig apply -f ./federation_config/clusters.yaml

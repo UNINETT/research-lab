@@ -111,12 +111,20 @@ data "template_file" "inventory_tail" {
     }
 }
 
+data "template_file" "fed_inventory" {
+    template = "$${federation_vars}"
+    vars = {
+        federation_vars = ""
+    }
+}
+
 data "template_file" "inventory" {
-    template = "$${aws_inventory}\n$${uhiaas_inventory}\n$${safespring_inventory}\n$${inventory_tail}"
+    template = "$${aws_inventory}\n$${uhiaas_inventory}\n$${safespring_inventory}\n$${fed_inventory}\n$${inventory_tail}"
     vars {
         aws_inventory = "${module.aws_cluster.inventory}"
         uhiaas_inventory = "${module.uhiaas_cluster.inventory}"
         safespring_inventory = "${module.safespring_cluster.inventory}"
+        fed_inventory = "${data.template_file.fed_inventory.rendered}"
         inventory_tail = "${data.template_file.inventory_tail.rendered}"
     }
 }
