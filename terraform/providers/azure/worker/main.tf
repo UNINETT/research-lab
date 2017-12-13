@@ -1,6 +1,7 @@
 variable "instance_type" {}
 variable "image" {}
 variable "count" {}
+variable "wscount" {}
 variable "cluster_name" {}
 
 variable "os_admin_user" {}
@@ -77,8 +78,11 @@ resource "azurerm_network_interface" "worker" {
 #  }
 #}
 
+# ********************************************************************************************************************************************************************
+# ********************************************************************************************************************************************************************
+
 resource "azurerm_virtual_machine" "worker" {
-  name                  = "${var.cluster_name}-worker-${count.index}"
+  name                  = "${var.cluster_name}-lworker-${count.index}"
   location              = "${var.region}"
   resource_group_name   = "${var.rg_name}"
   #network_interface_ids = ["${element(azurerm_network_interface.worker.*.id, count.index)}", "${element(azurerm_network_interface.worker-lb.*.id, count.index)}"]
@@ -104,7 +108,7 @@ resource "azurerm_virtual_machine" "worker" {
   }
 
   os_profile {
-    computer_name  = "${var.cluster_name}-worker-${count.index}"
+    computer_name  = "${var.cluster_name}-lw-${count.index}"
     admin_username = "${var.os_admin_user}"
     admin_password = "${var.os_adm_passwd}"
   }
@@ -123,6 +127,86 @@ resource "azurerm_virtual_machine" "worker" {
     uninett_activity = "${var.tag_activity}"
   }
 }
+
+# ********************************************************************************************************************************************************************
+# Windows Server Worker
+# ********************************************************************************************************************************************************************
+
+resource "azurerm_public_ip" "wsworker" {
+  name                         = "${var.cluster_name}-wsworker-pip-${count.index}"
+  location                     = "${var.region}"
+  resource_group_name          = "${var.rg_name}"
+  public_ip_address_allocation = "static"
+  count                        = "${var.wscount}"
+
+  tags {
+    environment = "${var.tag_environment}",
+    uninett_activity = "${var.tag_activity}"
+  }
+}
+
+resource "azurerm_network_interface" "wsworker" {
+  name                      = "${var.cluster_name}-wsworker-ni-${count.index}"
+  location                  = "${var.region}"
+  resource_group_name       = "${var.rg_name}"
+  network_security_group_id = "${var.worker_sg_id}"
+  count                     = "${var.wscount}"
+
+  ip_configuration {
+    name                          = "${var.cluster_name}-wsworker-ip-${count.index}"
+    subnet_id                     = "${var.subnet_id}"
+    private_ip_address_allocation = "dynamic"
+    public_ip_address_id = "${element(azurerm_public_ip.wsworker.*.id, count.index)}"
+  }
+}
+
+
+resource "azurerm_virtual_machine" "wsworker" {
+  # Windows computer name cannot be more than 15 characters long
+  name                  = "${var.cluster_name}-wsworker-${count.index}"
+  #name                  = "ak-wsw-${count.index}"
+  location              = "${var.region}"
+  resource_group_name   = "${var.rg_name}"
+  #network_interface_ids = ["${element(azurerm_network_interface.worker.*.id, count.index)}", "${element(azurerm_network_interface.worker-lb.*.id, count.index)}"]
+  network_interface_ids = ["${element(azurerm_network_interface.wsworker.*.id, count.index)}"]
+  primary_network_interface_id = "${element(azurerm_network_interface.wsworker.*.id, count.index)}"
+  vm_size               = "${var.instance_type}"
+  availability_set_id   = "${azurerm_availability_set.worker.id}"
+  depends_on            = ["azurerm_availability_set.worker"]
+  count               = "${var.wscount}"
+
+  storage_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServerSemiAnnual"
+    sku       = "Datacenter-Core-1709-with-Containers-smalldisk"
+    version   = "latest"
+  }
+
+  storage_os_disk {
+    name              = "${var.cluster_name}-wsworker-osdisk-${count.index}"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
+  }
+
+  os_profile {
+    computer_name  = "${var.cluster_name}-wsw-${count.index}"
+    admin_username = "${var.os_admin_user}"
+    admin_password = "${var.os_adm_passwd}"
+  }
+
+  os_profile_windows_config {
+    enable_automatic_upgrades = false
+  }
+
+  tags {
+    environment = "${var.tag_environment}",
+    uninett_activity = "${var.tag_activity}"
+  }
+}
+
+# ********************************************************************************************************************************************************************
+# ********************************************************************************************************************************************************************
 
  data "template_file" "workers_ansible" {
      template = "$${name} ansible_host=$${ip} public_ip=$${ip}"

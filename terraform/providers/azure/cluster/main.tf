@@ -18,6 +18,7 @@ variable "master_instance_type" {}
 variable "master_count" {}
 variable "worker_instance_type" {}
 variable "worker_count" {}
+variable "windowsserver_worker_count" {}
 variable "ssh_public_key_file" {}
 variable "allow_ssh_from_v4" { type = "list" }
 variable "allow_lb_from_v4" { type = "list" }
@@ -122,5 +123,7 @@ module "networks" {
    
    instance_type = "${var.worker_instance_type}"
    image = "${var.coreos_image}"
+
    count = "${var.worker_count}"
+   wscount = "${var.windowsserver_worker_count}"
  }

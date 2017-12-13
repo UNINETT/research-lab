@@ -28,4 +28,5 @@ variable "allow_api_access_from_v4" { type = "list", default = [] }
 variable "ssh_public_key" { default = "" }
 variable "master_count" { default = 0 }
 variable "worker_count" { default = 0 }
+variable "windowsserver_worker_count" { default = 0 }
 variable "ingress_use_proxy_protocol" { default = "" }

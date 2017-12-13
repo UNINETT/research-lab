@@ -164,20 +164,24 @@ resource "azurerm_network_security_rule" "worker-sg-sr-outbound" {
   depends_on                  = ["azurerm_network_security_group.worker-sg"]
 }
 
-# resource "azurerm_network_security_rule" "worker-sg-sr-inbound" {
-#   name                       = "inbound-access-rule"
-#   priority                   = 150
-#   direction                  = "Inbound"
-#   access                     = "Allow"
-#   protocol                   = "*"
-#   source_port_range          = "*"
-#   destination_port_range     = "*"
-#   source_address_prefix      = "${var.cidr}"
-#   destination_address_prefix = "${var.cidr}"
-#   resource_group_name         = "${var.rg_name}"
-#   network_security_group_name = "${var.cluster_name}-worker-sg"
-#   depends_on                  = ["azurerm_network_security_group.worker-sg"]
-# }
+# *******************************************************************************
+
+resource "azurerm_network_security_rule" "worker-sg-sr-rdp" {
+  name                       = "rdp-access-rule${count.index}"
+  priority                   = "10${count.index}"
+  direction                  = "Inbound"
+  access                     = "Allow"
+  protocol                   = "Tcp"
+  source_port_range          = "*"
+  destination_port_range     = "3389"
+  source_address_prefix      = "${element(var.allow_ssh_from_v4, count.index)}"
+  #source_address_prefix       = "*"
+  destination_address_prefix = "${var.cidr}"
+  resource_group_name         = "${var.rg_name}"
+  network_security_group_name = "${var.cluster_name}-worker-sg"
+  depends_on                  = ["azurerm_network_security_group.worker-sg"]
+  count = "${length(var.allow_ssh_from_v4)}"
+}
 
 resource "azurerm_network_security_rule" "worker-sg-sr-ssh" {
   name                       = "ssh-access-rule${count.index}"
@@ -229,6 +233,9 @@ resource "azurerm_network_security_rule" "worker-sg-sr-https" {
   depends_on                  = ["azurerm_network_security_group.worker-sg"]
   count = "${length(var.allow_ssh_from_v4)}"
 }
+
+# *******************************************************************************
+
 
 #######################################################################################################
 #######################################################################################################

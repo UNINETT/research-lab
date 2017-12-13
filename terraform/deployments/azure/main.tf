@@ -35,6 +35,7 @@ module "cluster" {
     master_count = "${module.global.master_count}"
     worker_instance_type = "${var.worker_instance_type}"
     worker_count = "${module.global.worker_count}"
+    windowsserver_worker_count = "${var.windowsserver_worker_count}"
     ssh_public_key_file = "${module.global.ssh_public_key}"
     allow_ssh_from_v4 = "${module.global.allow_ssh_from_v4}"
     allow_lb_from_v4 = "${module.global.allow_lb_from_v4}"
