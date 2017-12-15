@@ -7,7 +7,7 @@ variable "region" {}
 variable "worker_node_flavor" {}
 variable "node_flavor" {}
 variable "coreos_image" {}
-variable "public_v4_network" {}
+variable "network" {}
 variable "availability_zone" {}
 variable "cluster_name" {}
 variable "cluster_dns_domain" {}
@@ -55,6 +55,7 @@ module "masters" {
     cluster_name = "${var.cluster_name}"
     count = "${var.master_count}"
     keypair = "${module.keypair.name}"
+    network = "${var.network}"
     sec_groups = [ "default", "${module.securitygroups.ssh}", "${module.securitygroups.master}" ]
 }
 
@@ -69,4 +70,5 @@ module "workers" {
     count = "${var.worker_count}"
     keypair = "${module.keypair.name}"
     sec_groups = [ "default", "${module.securitygroups.ssh}", "${module.securitygroups.lb}" ]
+    network = "${var.network}"
 }

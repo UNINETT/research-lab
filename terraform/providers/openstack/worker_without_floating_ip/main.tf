@@ -4,7 +4,7 @@ variable "image" {}
 variable "count" {}
 variable "cluster_name" {}
 variable "keypair" {}
-#variable "network" {}
+variable "network" {}
 variable "sec_groups" { type = "list" }
 variable "availability_zone" {}
 
@@ -17,6 +17,9 @@ resource "openstack_compute_instance_v2" "worker" {
     image_id = "${var.image}"
     key_pair = "${var.keypair}"
     availability_zone = "${var.availability_zone}"
+    network = {
+      name = "${var.network}"
+    }
 
     security_groups = ["${var.sec_groups}"]
     user_data = "#cloud-config\nhostname: ${var.cluster_name}-worker-${count.index}\n"

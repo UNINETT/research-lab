@@ -8,7 +8,7 @@ variable "region" {}
 variable "worker_node_flavor" {}
 variable "node_flavor" {}
 variable "coreos_image" {}
-variable "public_v4_network" {}
+variable "network" {}
 variable "availability_zone" {}
 
 # Cluster data, needs to be set in local.tfvars

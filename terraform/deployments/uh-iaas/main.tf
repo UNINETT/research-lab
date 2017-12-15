@@ -32,7 +32,7 @@ module "cluster" {
     worker_node_flavor = "${var.worker_node_flavor}"
     node_flavor = "${var.node_flavor}"
     coreos_image = "${var.coreos_image}"
-    public_v4_network = "${var.public_v4_network}"
+    network = "${var.network}"
     availability_zone = "${var.availability_zone}"
     cluster_name = "${module.global.cluster_name}"
     cluster_dns_domain = "${var.cluster_dns_domain}"
