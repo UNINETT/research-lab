@@ -1,3 +1,11 @@
+- name: Add Google DNS resolver as backup
+  raw: echo -e "[Match]\nName=eth0\n\n[Network]\nDNS=8.8.8.8" > /etc/systemd/network/10-google-dns.network
+  become: true
+
+- name: Restart systemd network to have new DNS settings
+  raw: systemctl restart systemd-networkd
+  become: true
+
 - name: Check if bootstrap is needed
   raw: stat $HOME/.bootstrapped
   register: need_bootstrap
