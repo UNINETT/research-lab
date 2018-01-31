@@ -5,13 +5,14 @@ variable "count" {}
 variable "cluster_name" {}
 variable "keypair" {}
 variable "network" {}
+variable "floating_ip_pool" {}
 variable "sec_groups" { type = "list" }
 
 # Master nodes
 resource "openstack_compute_floatingip_v2" "master" {
     count = "${var.count}"
     region = "${var.region}"
-    pool = "public-v4"
+    pool = "${var.floating_ip_pool}"
 }
 
 resource "openstack_compute_instance_v2" "master" {
@@ -40,6 +41,7 @@ resource "openstack_compute_instance_v2" "master" {
 }
 
 resource "openstack_compute_floatingip_associate_v2" "master" {
+    region = "${var.region}"
     count = "${var.count}"
     floating_ip = "${openstack_compute_floatingip_v2.master.*.address[count.index]}"
     instance_id = "${openstack_compute_instance_v2.master.*.id[count.index]}"

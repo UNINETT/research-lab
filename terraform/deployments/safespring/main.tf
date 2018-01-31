@@ -25,6 +25,7 @@ module "cluster" {
     node_flavor = "${var.node_flavor}"
     coreos_image = "${var.coreos_image}"
     public_v4_network = "${var.public_v4_network}"
+    floating_ip_pool = "${var.floating_ip_pool}"
     cluster_name = "${module.global.cluster_name}"
     cluster_dns_domain = "${var.cluster_dns_domain}"
     allow_ssh_from_v4 = "${module.global.allow_ssh_from_v4}"

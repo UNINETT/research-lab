@@ -40,7 +40,20 @@ variable "safespring_worker_node_flavor" {}
 variable "safespring_node_flavor" {}
 variable "safespring_coreos_image" {}
 variable "safespring_public_v4_network" {}
+variable "safespring_floating_ip_pool" {}
 
+
+variable "csc_auth_url" {}
+variable "csc_domain_name" {}
+variable "csc_tenant_name" {}
+variable "csc_user_name" {}
+variable "csc_password" {}
+variable "csc_region" {}
+variable "csc_worker_node_flavor" {}
+variable "csc_node_flavor" {}
+variable "csc_coreos_image" {}
+variable "csc_public_v4_network" {}
+variable "csc_floating_ip_pool" {}
 
 # Cluster data, needs to be set in local.tfvars
 variable "cluster_name" {}

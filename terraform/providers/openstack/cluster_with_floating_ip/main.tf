@@ -16,6 +16,7 @@ variable "allow_api_access_from_v4" { type = "list" }
 variable "ssh_public_key" { }
 variable "master_count" { }
 variable "worker_count" { }
+variable "floating_ip_pool" { }
 variable "ingress_use_proxy_protocol" {}
 
 provider "openstack" {
@@ -36,6 +37,7 @@ module "keypair" {
 
 module "networks" {
     source = "../networks"
+    region = "${var.region}"
 
     public_v4_network = "${var.public_v4_network}"
     cluster_name = "${var.cluster_name}"
@@ -43,6 +45,7 @@ module "networks" {
 
 module "securitygroups" {
     source = "../securitygroups"
+    region = "${var.region}"
 
     cluster_name = "${var.cluster_name}"
     region = "${var.region}"
@@ -55,6 +58,7 @@ module "masters" {
     source = "../master_with_floating_ip"
 
     region = "${var.region}"
+    floating_ip_pool = "${var.floating_ip_pool}"
     flavor = "${var.node_flavor}"
     image = "${var.coreos_image}"
     cluster_name = "${var.cluster_name}"
@@ -67,6 +71,7 @@ module "masters" {
 module "workers" {
     source = "../worker_with_floating_ip"
 
+    floating_ip_pool = "${var.floating_ip_pool}"
     region = "${var.region}"
     flavor = "${var.worker_node_flavor}"
     image = "${var.coreos_image}"

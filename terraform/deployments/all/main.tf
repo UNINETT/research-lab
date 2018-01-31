@@ -92,6 +92,7 @@ module "safespring_cluster" {
     worker_node_flavor = "${var.safespring_worker_node_flavor}"
     node_flavor = "${var.safespring_node_flavor}"
     coreos_image = "${var.safespring_coreos_image}"
+    floating_ip_pool = "${var.safespring_floating_ip_pool}"
     public_v4_network = "${var.safespring_public_v4_network}"
     cluster_name = "${module.global.cluster_name}-safespring"
     cluster_dns_domain = "cluster-safespring.${var.cluster_dns_domain}"
@@ -104,10 +105,35 @@ module "safespring_cluster" {
     ingress_use_proxy_protocol = "${module.global.ingress_use_proxy_protocol}"
 }
 
+module "csc_cluster" {
+    source = "../../providers/openstack/cluster_with_floating_ip"
+
+    auth_url = "${var.csc_auth_url}"
+    domain_name = "${var.csc_domain_name}"
+    tenant_name = "${var.csc_tenant_name}"
+    user_name = "${var.csc_user_name}"
+    password = "${var.csc_password}"
+    region = "${var.csc_region}"
+    worker_node_flavor = "${var.csc_worker_node_flavor}"
+    node_flavor = "${var.csc_node_flavor}"
+    coreos_image = "${var.csc_coreos_image}"
+    public_v4_network = "${var.csc_public_v4_network}"
+    floating_ip_pool = "${var.csc_floating_ip_pool}"
+    cluster_name = "${module.global.cluster_name}-csc"
+    cluster_dns_domain = "cluster-csc.${var.cluster_dns_domain}"
+    allow_ssh_from_v4 = "${module.global.allow_ssh_from_v4}"
+    allow_lb_from_v4 = "${module.global.allow_lb_from_v4}"
+    allow_api_access_from_v4 = "${module.global.allow_api_access_from_v4}"
+    ssh_public_key = "${module.global.ssh_public_key}"
+    master_count = "${module.global.master_count}"
+    worker_count = "${module.global.worker_count}"
+    ingress_use_proxy_protocol = "${module.global.ingress_use_proxy_protocol}"
+}
+
 data "template_file" "inventory_tail" {
     template = "$${section_vars}"
     vars = {
-        section_vars = "[all:children]\n${module.global.cluster_name}-aws\n${module.global.cluster_name}-uhiaas\n${module.global.cluster_name}-safespring\n[masters:children]\n${module.global.cluster_name}-aws-masters\n${module.global.cluster_name}-uhiaas-masters\n${module.global.cluster_name}-safespring-masters\n[workers:children]\n${module.global.cluster_name}-aws-workers\n${module.global.cluster_name}-uhiaas-workers\n${module.global.cluster_name}-safespring-workers\n[servers:vars]\nansible_ssh_user=core\nansible_python_interpreter=/home/core/bin/python\n[servers:children]\nmasters\nworkers\n"
+        section_vars = "[all:children]\n${module.global.cluster_name}-aws\n${module.global.cluster_name}-safespring\n${module.global.cluster_name}-csc\n[masters:children]\n${module.global.cluster_name}-aws-masters\n${module.global.cluster_name}-safespring-masters\n${module.global.cluster_name}-csc-masters\n[workers:children]\n${module.global.cluster_name}-aws-workers\n${module.global.cluster_name}-safespring-workers\n${module.global.cluster_name}-csc-workers\n[servers:vars]\nansible_ssh_user=core\nansible_python_interpreter=/home/core/bin/python\n[servers:children]\nmasters\nworkers\n"
     }
 }
 
@@ -119,11 +145,12 @@ data "template_file" "fed_inventory" {
 }
 
 data "template_file" "inventory" {
-    template = "$${aws_inventory}\n$${uhiaas_inventory}\n$${safespring_inventory}\n$${fed_inventory}\n$${inventory_tail}"
+    template = "$${aws_inventory}\n$${safespring_inventory}\n$${csc_inventory}\n$${fed_inventory}\n$${inventory_tail}"
     vars {
         aws_inventory = "${module.aws_cluster.inventory}"
-        uhiaas_inventory = "${module.uhiaas_cluster.inventory}"
+        #uhiaas_inventory = "${module.uhiaas_cluster.inventory}"
         safespring_inventory = "${module.safespring_cluster.inventory}"
+        csc_inventory = "${module.csc_cluster.inventory}"
         fed_inventory = "${data.template_file.fed_inventory.rendered}"
         inventory_tail = "${data.template_file.inventory_tail.rendered}"
     }
