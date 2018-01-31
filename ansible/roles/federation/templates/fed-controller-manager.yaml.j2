@@ -86,7 +86,8 @@ spec:
           - --dns-provider-config=/etc/coredns/coredns.conf
           - --federation-name={{fed_name}}
           - --zone-name={{fed_zone_name}}
-          - --v=4
+          - --v=2
+          - --cluster-monitor-period=3s
           - --kubeconfig=/etc/kubernetes/kubeconfig
         volumeMounts:
         - name: coredns-conf

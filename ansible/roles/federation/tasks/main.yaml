@@ -2,61 +2,65 @@
   file:
     dest: ./federation_config
     state: absent
+  when: " fed_host_cluster == cluster_name "
 - name: Prepare Kubernetes configuration directory
   file:
     dest: ./federation_config
     state: directory
+  when: " fed_host_cluster == cluster_name "
 - name: Copy configuration files
   copy:
     src: "{{ item }}"
     dest: "./federation_config/{{ item | basename }}"
   with_fileglob:
   - '*.yaml'
-- name: Initialize templated Token file
+  when: " fed_host_cluster == cluster_name "
+- name: Initialize templated Cluster file
+  template:
+    src: clusters.yaml.j2
+    dest: "./federation_config/{{cluster_name}}-cluster.yaml"
+- name: Initialize templated token file
   template:
     src: known-tokens.yaml.j2
     dest: "./federation_config/known-tokens.yaml"
+  when: " fed_host_cluster == cluster_name "
 - name: Initialize templated configuration files
   template:
     src: "{{ item }}"
     dest: "./federation_config/{{ item | basename | regex_replace('\\.j2$','') }}"
   with_fileglob:
-  - '../templates/*.yaml.j2'
+  - '../templates/coredns.yaml.j2'
+  - '../templates/fed-api-server.yaml.j2'
+  - '../templates/fed-controller-manager.yaml.j2'
+  - '../templates/fed-kubeconfig.yaml.j2'
+  when: " fed_host_cluster == cluster_name "
 - name: Create Federation Namespace
-  command: kubectl --kubeconfig kubeconfig-cluster-{{cluster_name}}-{{ fed_host_cluster }} apply -f ./federation_config/namespace.yaml
+  command: kubectl --kubeconfig kubeconfig-cluster-{{cluster_name}} apply -f ./federation_config/namespace.yaml
+  when: " fed_host_cluster == cluster_name "
 - name: Create Federation ETCD Cluster
-  command: kubectl --kubeconfig kubeconfig-cluster-{{cluster_name}}-{{ fed_host_cluster }} apply -f ./federation_config/etcd.yaml
+  command: kubectl --kubeconfig kubeconfig-cluster-{{cluster_name}} apply -f ./federation_config/etcd.yaml
+  when: " fed_host_cluster == cluster_name "
 - name: Create CoreDNS
-  command: kubectl --kubeconfig kubeconfig-cluster-{{cluster_name}}-{{ fed_host_cluster }} apply -f ./federation_config/coredns.yaml
+  command: kubectl --kubeconfig kubeconfig-cluster-{{cluster_name}} apply -f ./federation_config/coredns.yaml
+  when: " fed_host_cluster == cluster_name "
 - name: Create Federation API Server
-  command: kubectl --kubeconfig kubeconfig-cluster-{{cluster_name}}-{{ fed_host_cluster }} apply -f ./federation_config/fed-api-server.yaml
+  command: kubectl --kubeconfig kubeconfig-cluster-{{cluster_name}} apply -f ./federation_config/fed-api-server.yaml
+  when: " fed_host_cluster == cluster_name "
 - name: Create Federation Controller Manager
-  command: kubectl --kubeconfig kubeconfig-cluster-{{cluster_name}}-{{ fed_host_cluster }} apply -f ./federation_config/fed-controller-manager.yaml
-- name: Check safespring kubeconfig secret defined
-  command: kubectl --kubeconfig kubeconfig-cluster-{{cluster_name}}-{{ fed_host_cluster }} -n federation-system get secret safespring
-  register: safespring_defined
+  command: kubectl --kubeconfig kubeconfig-cluster-{{cluster_name}} apply -f ./federation_config/fed-controller-manager.yaml
+  when: " fed_host_cluster == cluster_name "
+- name: Check cluster kubeconfig secret defined
+  command: kubectl --kubeconfig kubeconfig-cluster-{{fed_host_cluster}} -n federation-system get secret {{cluster_name}}
+  register: cluster_secret_defined
   ignore_errors: True
 - name: Create Safespring Kubeconfig secret
-  command: kubectl --kubeconfig kubeconfig-cluster-{{cluster_name}}-{{ fed_host_cluster }} -n federation-system create secret generic safespring --from-file=./kubeconfig-{{cluster_name}}-safespring
-  when: safespring_defined|failed
-- name: Check UH-IaaS kubeconfig secret defined
-  command: kubectl --kubeconfig kubeconfig-cluster-{{cluster_name}}-{{ fed_host_cluster }} -n federation-system get secret uhiaas
-  register: uh_iaas_defined
-  ignore_errors: True
-- name: Create UH-IaaS Kubeconfig secret
-  command: kubectl --kubeconfig kubeconfig-cluster-{{cluster_name}}-{{ fed_host_cluster }} -n federation-system create secret generic uhiaas --from-file=./kubeconfig-{{cluster_name}}-uhiaas
-  when: uhiaas_defined|failed
-- name: Check AWS kubeconfig secret defined
-  command: kubectl --kubeconfig kubeconfig-cluster-{{cluster_name}}-{{ fed_host_cluster }} -n federation-system get secret aws
-  register: aws_defined
-  ignore_errors: True
-- name: Create AWS Kubeconfig secret
-  command: kubectl --kubeconfig kubeconfig-cluster-{{cluster_name}}-{{ fed_host_cluster }} -n federation-system create secret generic aws --from-file=./kubeconfig-{{cluster_name}}-aws
-  when: aws_defined|failed
+  command: kubectl --kubeconfig kubeconfig-cluster-{{fed_host_cluster}} -n federation-system create secret generic {{cluster_name}} --from-file=kubeconfig=./kubeconfig-cluster-{{cluster_name}}
+  when: cluster_secret_defined|failed
 - name: Generating Federation kubeconfig
   template:
     src: fed-kubeconfig.j2
     dest: ./fed-kubeconfig
     mode: 0600
+  when: " fed_host_cluster == cluster_name "
 - name: Create underlying clusters in Federation Cluster
-  command: kubectl --kubeconfig fed-kubeconfig apply -f ./federation_config/clusters.yaml
+  command: kubectl --kubeconfig fed-kubeconfig apply -f ./federation_config/{{cluster_name}}-cluster.yaml

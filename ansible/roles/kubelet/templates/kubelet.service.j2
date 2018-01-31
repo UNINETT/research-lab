@@ -27,7 +27,7 @@ ExecStart=/usr/lib/coreos/kubelet-wrapper \
   --pod-manifest-path=/etc/kubernetes/manifests \
   --feature-gates=Accelerators=true,ExperimentalCriticalPodAnnotation=true,TaintBasedEvictions=true,MountPropagation=true,DevicePlugins=True \
   --hostname-override={{ inventory_hostname }} \
-  --node-labels=lb={% if lb is defined and lb=='true' %}true{% else %}false{% endif %},type={% if inventory_hostname in groups['masters'] %}master{% else %}worker{% endif %}  \
+  --node-labels=lb={% if lb is defined and lb=='true' %}true{% else %}false{% endif %},type={% if inventory_hostname in groups['masters'] %}master{% else %}worker{% endif %},failure-domain.beta.kubernetes.io/zone={{cluster_name}},failure-domain.beta.kubernetes.io/region={{cluster_name}}  \
   --cluster-dns={{ dns_service_ip }} \
   --cluster-domain=cluster.local \
   --anonymous-auth=false \

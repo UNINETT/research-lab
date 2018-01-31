@@ -1,5 +1,5 @@
 - name: Create Kubernetes Federation Control Plane
-  hosts: cluster
+  hosts: all:!masters:!workers
   connection: local
   become: false
   vars_files:

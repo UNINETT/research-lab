@@ -1,34 +1,10 @@
 apiVersion: federation/v1beta1
 kind: Cluster
 metadata:
-  name: safespring
+  name: {{cluster_name}}
 spec:
   serverAddressByClientCIDRs:
     - clientCIDR: "0.0.0.0/0"
       serverAddress: "https://{{ master_ip }}:8443"
   secretRef:
-    name: safespring
-
----
-apiVersion: federation/v1beta1
-kind: Cluster
-metadata:
-  name: uhiaas
-spec:
-  serverAddressByClientCIDRs:
-    - clientCIDR: "0.0.0.0/0"
-      serverAddress: "https://{{ master_ip }}:8443"
-  secretRef:
-    name: uhiaas
-
----
-apiVersion: federation/v1beta1
-kind: Cluster
-metadata:
-  name: aws
-spec:
-  serverAddressByClientCIDRs:
-    - clientCIDR: "0.0.0.0/0"
-      serverAddress: "https://{{ master_ip }}:8443"
-  secretRef:
-    name: aws
+    name: {{cluster_name}}
